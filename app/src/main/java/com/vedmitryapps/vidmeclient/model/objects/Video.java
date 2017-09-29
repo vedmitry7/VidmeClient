@@ -1,9 +1,10 @@
 
 package com.vedmitryapps.vidmeclient.model.objects;
 
-import java.util.List;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+
+import java.util.List;
 
 public class Video {
 
@@ -569,4 +570,60 @@ public class Video {
         this.formats = formats;
     }
 
+    @Override
+    public String toString() {
+        return "Video{" +
+                "videoId='" + videoId + '\'' +
+                ", url='" + url + '\'' +
+                ", originalSize='" + originalSize + '\'' +
+                ", fullUrl='" + fullUrl + '\'' +
+                ", embedUrl='" + embedUrl + '\'' +
+                ", userId='" + userId + '\'' +
+                ", state='" + state + '\'' +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", duration=" + duration +
+                ", height=" + height +
+                ", width=" + width +
+                ", dateCreated='" + dateCreated + '\'' +
+                ", dateStored='" + dateStored + '\'' +
+                ", dateCompleted='" + dateCompleted + '\'' +
+                ", commentCount=" + commentCount +
+                ", viewCount=" + viewCount +
+                ", shareCount=" + shareCount +
+                ", version=" + version +
+                ", nsfw=" + nsfw +
+                ", moderated=" + moderated +
+                ", thumbnail='" + thumbnail + '\'' +
+                ", thumbnailUrl='" + thumbnailUrl + '\'' +
+                ", thumbnailGif=" + thumbnailGif +
+                ", thumbnailGifUrl=" + thumbnailGifUrl +
+                ", thumbnailAi='" + thumbnailAi + '\'' +
+                ", storyboard='" + storyboard + '\'' +
+                ", score=" + score +
+                ", likesCount=" + likesCount +
+                ", channelId='" + channelId + '\'' +
+                ", source='" + source + '\'' +
+                ", _private=" + _private +
+                ", scheduled=" + scheduled +
+                ", subscribedOnly=" + subscribedOnly +
+                ", datePublished='" + datePublished + '\'' +
+                ", latitude=" + latitude +
+                ", longitude=" + longitude +
+                ", placeId=" + placeId +
+                ", placeName=" + placeName +
+                ", colors='" + colors + '\'' +
+                ", redditLink=" + redditLink +
+                ", youtubeOverrideSource=" + youtubeOverrideSource +
+                ", complete=" + complete +
+                ", completeUrl='" + completeUrl + '\'' +
+                ", watchingCount=" + watchingCount +
+                ", hotScore=" + hotScore +
+                ", isFeatured=" + isFeatured +
+                ", dateFeatured='" + dateFeatured + '\'' +
+                ", user=" + user +
+                ", channel=" + channel +
+                ", formats=" + formats +
+                '}';
+    }
 }

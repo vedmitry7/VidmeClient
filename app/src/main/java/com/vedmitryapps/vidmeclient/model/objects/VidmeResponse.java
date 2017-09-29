@@ -1,11 +1,12 @@
 
 package com.vedmitryapps.vidmeclient.model.objects;
 
-import java.util.List;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class Response {
+import java.util.List;
+
+public class VidmeResponse {
 
     @SerializedName("status")
     @Expose

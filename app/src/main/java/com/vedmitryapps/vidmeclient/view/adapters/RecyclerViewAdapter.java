@@ -3,7 +3,6 @@ package com.vedmitryapps.vidmeclient.view.adapters;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,22 +29,17 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         this.context = context;
         this.videos = videos;
         displayMetrics = context.getResources().getDisplayMetrics();
-        Log.i("TAG22", "RecyclerViewAdapter constr... " + videos.size());
 
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_recycler_view, parent, false);
-        Log.i("TAG22", "onCreateViewHolder ");
         return new ViewHolder(v);
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        Log.i("TAG22", "onBind " + position);
-        holder.title.setText(videos.get(position).getTitle());
-        holder.likesCount.setText(String.valueOf(videos.get(position).getLikesCount()));
         double w = videos.get(position).getWidth();
         double h = videos.get(position).getHeight();
         double k = w/h;
@@ -54,6 +48,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                 .load(videos.get(position).getThumbnailUrl())
                 .resize(displayMetrics.widthPixels, (int) (displayMetrics.widthPixels/k))
                 .into(holder.imageView);
+
+       // holder.title.setText(videos.get(position).getTitle());
+        holder.title.setText(String.valueOf(position));
+        holder.likesCount.setText(String.valueOf(videos.get(position).getLikesCount()));
     }
 
     @Override
@@ -72,7 +70,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
         public ViewHolder(View itemView) {
             super(itemView);
-            Log.i("TAG22", "ViewHolder constr .... ");
             ButterKnife.bind(this, itemView);
         }
     }

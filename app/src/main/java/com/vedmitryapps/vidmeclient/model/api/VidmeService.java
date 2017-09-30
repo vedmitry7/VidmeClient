@@ -1,6 +1,7 @@
 package com.vedmitryapps.vidmeclient.model.api;
 
 
+import com.vedmitryapps.vidmeclient.model.objects.AuthResponse;
 import com.vedmitryapps.vidmeclient.model.objects.VidmeResponse;
 
 import retrofit2.Call;
@@ -8,7 +9,7 @@ import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
 
-public interface VidmeApi {
+public interface VidmeService {
 
     @GET("videos/featured")
     Call<VidmeResponse> getFeaturedVideo(@Query("offset") int offset,
@@ -19,12 +20,12 @@ public interface VidmeApi {
                                     @Query("limit") int limit);
 
     @GET("/videos/feed")
-    Call<VidmeResponse> getFeedVideo(@Query("limit") int limit,
-                                     @Query("offset") int offset,
+    Call<VidmeResponse> getFeedVideo(@Query("offset") int offset,
+                                     @Query("limit") int limit,
                                      @Query("token") String token);
 
     @POST("auth/create")
-    Call<VidmeResponse> createAuth(@Query("username") String username,
-                                   @Query("password") String password);
+    Call<AuthResponse> createAuth(@Query("username") String username,
+                                  @Query("password") String password);
 
 }

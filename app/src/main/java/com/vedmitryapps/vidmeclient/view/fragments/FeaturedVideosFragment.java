@@ -1,5 +1,7 @@
 package com.vedmitryapps.vidmeclient.view.fragments;
 
+import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -12,10 +14,13 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.vedmitryapps.vidmeclient.R;
-import com.vedmitryapps.vidmeclient.model.api.VidmeApi;
+import com.vedmitryapps.vidmeclient.model.api.ApiFactory;
 import com.vedmitryapps.vidmeclient.model.objects.Video;
 import com.vedmitryapps.vidmeclient.model.objects.VidmeResponse;
+import com.vedmitryapps.vidmeclient.view.activities.PlayVideoActivity;
 import com.vedmitryapps.vidmeclient.view.adapters.RecyclerViewAdapter;
+import com.vedmitryapps.vidmeclient.view.listeners.EndlessRecyclerViewScrollListener;
+import com.vedmitryapps.vidmeclient.view.listeners.RecyclerItemClickListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,17 +30,20 @@ import butterknife.ButterKnife;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 
-public class FeaturedVideosFragment extends Fragment {
+public class FeaturedVideosFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     @BindView(R.id.featuredRecyclerView)
     RecyclerView recyclerView;
 
+    @BindView(R.id.refresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
+
     private List<Video> videos;
     RecyclerViewAdapter recyclerViewAdapter;
+
+    private int limit, offset;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -51,24 +59,49 @@ public class FeaturedVideosFragment extends Fragment {
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(recyclerViewAdapter);
 
-        SwipeRefreshLayout swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.refresh);
+        recyclerView.addOnItemTouchListener(
+                new RecyclerItemClickListener(getContext(), recyclerView , new RecyclerItemClickListener.OnItemClickListener() {
+                    @Override public void onItemClick(View view, int position) {
+                        Intent intent = new Intent(getContext(), PlayVideoActivity.class);
+                        intent.putExtra("url", videos.get(position).getUrl());
+                        intent.putExtra("urlFull", videos.get(position).getFullUrl());
+                        startActivity(intent);
+                    }
 
-        Retrofit builder = new Retrofit.Builder()
-                .baseUrl("https://api.vid.me/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+                    @Override public void onLongItemClick(View view, int position) {
+                    }
+                })
+        );
 
-        VidmeApi client = builder.create(VidmeApi.class);
+        recyclerView.setOnScrollListener(new EndlessRecyclerViewScrollListener(layoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount) {
+                Log.i("TAG22", "LoadMore - page " + page);
+                loadDate();
+            }
+        });
 
-        client.getFeaturedVideo(0, 10).enqueue(new Callback<VidmeResponse>() {
+        mSwipeRefreshLayout.setColorSchemeColors(Color.RED, Color.GREEN, Color.BLUE, Color.MAGENTA);
+        loadDate();
+
+        return view;
+    }
+
+    void loadDate(){
+        Log.i("TAG22", "LoadDate");
+
+        ApiFactory.getService().getFeaturedVideo(offset, 10).enqueue(new Callback<VidmeResponse>() {
             @Override
             public void onResponse(Call<VidmeResponse> call, Response<VidmeResponse> response) {
                 VidmeResponse vidmeResponse = response.body();
 
                 Log.i("TAG22", String.valueOf(vidmeResponse.getStatus()));
                 Log.i("TAG22", String.valueOf(vidmeResponse.getVideos().size()));
-                videos = vidmeResponse.getVideos();
-               recyclerViewAdapter.update(videos);
+                videos.addAll(vidmeResponse.getVideos());
+                recyclerViewAdapter.update(videos);
+
+                offset += 10;
+                Log.i("TAG22", "offset = " + offset);
             }
 
             @Override
@@ -77,7 +110,10 @@ public class FeaturedVideosFragment extends Fragment {
                 Log.i("TAG22", t.getMessage());
             }
         });
+    }
 
-        return view;
+    @Override
+    public void onRefresh() {
+
     }
 }

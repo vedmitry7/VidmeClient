@@ -1,20 +1,19 @@
-
 package com.vedmitryapps.vidmeclient.model.objects;
+
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-import java.util.List;
-
-public class VidmeResponse {
+public class AuthResponse {
 
     @SerializedName("status")
     @Expose
     private Boolean status;
 
-    @SerializedName("videos")
+    @SerializedName("auth")
     @Expose
-    private List<Video> videos = null;
+    private Auth auth;
+
 
     public Boolean getStatus() {
         return status;
@@ -24,11 +23,11 @@ public class VidmeResponse {
         this.status = status;
     }
 
-    public List<Video> getVideos() {
-        return videos;
+    public Auth getAuth() {
+        return auth;
     }
 
-    public void setVideos(List<Video> videos) {
-        this.videos = videos;
+    public void setAuth(Auth auth) {
+        this.auth = auth;
     }
 }

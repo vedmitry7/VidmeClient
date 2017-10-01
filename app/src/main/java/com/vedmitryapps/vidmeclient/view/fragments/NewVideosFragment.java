@@ -1,5 +1,6 @@
 package com.vedmitryapps.vidmeclient.view.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -15,7 +16,10 @@ import com.vedmitryapps.vidmeclient.R;
 import com.vedmitryapps.vidmeclient.model.api.ApiFactory;
 import com.vedmitryapps.vidmeclient.model.objects.Video;
 import com.vedmitryapps.vidmeclient.model.objects.VidmeResponse;
+import com.vedmitryapps.vidmeclient.view.activities.PlayVideoActivity;
 import com.vedmitryapps.vidmeclient.view.adapters.RecyclerViewAdapter;
+import com.vedmitryapps.vidmeclient.view.listeners.EndlessRecyclerViewScrollListener;
+import com.vedmitryapps.vidmeclient.view.listeners.RecyclerItemClickListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +39,7 @@ public class NewVideosFragment extends Fragment {
     private List<Video> videos;
     private RecyclerViewAdapter recyclerViewAdapter;
 
+    private int offset;
 
     @Nullable
     @Override
@@ -51,23 +56,50 @@ public class NewVideosFragment extends Fragment {
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(recyclerViewAdapter);
 
+        recyclerView.addOnItemTouchListener(
+                new RecyclerItemClickListener(getContext(), recyclerView , new RecyclerItemClickListener.OnItemClickListener() {
+                    @Override public void onItemClick(View view, int position) {
+                        Intent intent = new Intent(getContext(), PlayVideoActivity.class);
+                        intent.putExtra("url", videos.get(position).getUrl());
+                        intent.putExtra("urlFull", videos.get(position).getFullUrl());
+                        startActivity(intent);
+                    }
+
+                    @Override public void onLongItemClick(View view, int position) {
+                    }
+                })
+        );
+
+        recyclerView.setOnScrollListener(new EndlessRecyclerViewScrollListener(layoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount) {
+                Log.i("TAG22", "LoadMore - page " + page);
+                loadDate();
+            }
+        });
+
         SwipeRefreshLayout swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.refresh);
 
-        onLoadMore();
+        loadDate();
 
         return view;
     }
 
-    void onLoadMore(){
-        ApiFactory.getService().getNewVideo(0, 10).enqueue(new Callback<VidmeResponse>() {
+    void loadDate(){
+        Log.i("TAG22", "LoadDate");
+
+        ApiFactory.getService().getFeaturedVideo(offset, 10).enqueue(new Callback<VidmeResponse>() {
             @Override
             public void onResponse(Call<VidmeResponse> call, Response<VidmeResponse> response) {
                 VidmeResponse vidmeResponse = response.body();
 
                 Log.i("TAG22", String.valueOf(vidmeResponse.getStatus()));
                 Log.i("TAG22", String.valueOf(vidmeResponse.getVideos().size()));
-                videos = vidmeResponse.getVideos();
+                videos.addAll(vidmeResponse.getVideos());
                 recyclerViewAdapter.update(videos);
+
+                offset += 10;
+                Log.i("TAG22", "offset = " + offset);
             }
 
             @Override

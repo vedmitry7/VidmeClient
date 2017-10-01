@@ -43,7 +43,7 @@ public class FeaturedVideosFragment extends Fragment implements SwipeRefreshLayo
     private List<Video> videos;
     RecyclerViewAdapter recyclerViewAdapter;
 
-    private int limit, offset;
+    private int offset;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {

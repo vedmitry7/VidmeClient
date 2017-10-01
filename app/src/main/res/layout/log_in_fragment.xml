@@ -12,14 +12,6 @@ android:id="@+id/refresh">
         android:layout_height="match_parent">
 
 
-        <android.support.v7.widget.RecyclerView
-            android:background="@color/colorPrimary"
-            android:id="@+id/featuredRecyclerView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"
-            />
-
         <RelativeLayout
             android:id="@+id/login_container"
             android:layout_width="match_parent"
@@ -58,6 +50,13 @@ android:id="@+id/refresh">
 
         </RelativeLayout>
 
+
+        <android.support.v7.widget.RecyclerView
+            android:background="@color/colorPrimary"
+            android:id="@+id/featuredRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            />
 
     </LinearLayout>
 

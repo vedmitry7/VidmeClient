@@ -1,6 +1,7 @@
 package com.vedmitryapps.vidmeclient.view.fragments;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -21,7 +22,11 @@ import com.vedmitryapps.vidmeclient.model.api.ApiFactory;
 import com.vedmitryapps.vidmeclient.model.objects.AuthResponse;
 import com.vedmitryapps.vidmeclient.model.objects.Video;
 import com.vedmitryapps.vidmeclient.model.objects.VidmeResponse;
+import com.vedmitryapps.vidmeclient.view.activities.MainActivity;
+import com.vedmitryapps.vidmeclient.view.activities.PlayVideoActivity;
 import com.vedmitryapps.vidmeclient.view.adapters.RecyclerViewAdapter;
+import com.vedmitryapps.vidmeclient.view.listeners.EndlessRecyclerViewScrollListener;
+import com.vedmitryapps.vidmeclient.view.listeners.RecyclerItemClickListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,29 +57,28 @@ public class FeedVideosFragment extends Fragment {
     @BindView(R.id.featuredRecyclerView)
     RecyclerView recyclerView;
 
+    private RecyclerViewAdapter recyclerViewAdapter;
+    private SharedPreferences sharedPreferences;
     private List<Video> videos;
-    RecyclerViewAdapter recyclerViewAdapter;
-
-
-    SharedPreferences sharedPreferences;
     private String token;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable final ViewGroup container, @Nullable Bundle savedInstanceState) {
         Log.i("TAG22", "onCreateLogIn");
-        View view = inflater.inflate(R.layout.log_in_fragment, container, false);
+        View view = inflater.inflate(R.layout.fragment_feed_video, container, false);
         ButterKnife.bind(this, view);
-        sharedPreferences = getContext().getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
 
+        videos = new ArrayList<>();
         initRecyclerView();
 
+        sharedPreferences = getContext().getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
         token = sharedPreferences.getString(KEY_TOKEN, null);
-        String tokenDate = sharedPreferences.getString(KEY_TOKEN_END, null);
+
         if(token == null){
             showLoginContainer();
         } else {
             hideLoginContainer();
-            onLoadMore();
+            loadDate();
         }
 
         loginBtn.setOnClickListener(new View.OnClickListener() {
@@ -92,9 +96,11 @@ public class FeedVideosFragment extends Fragment {
                         Log.i("TAG22", String.valueOf("RESPONSE STATUS NULL - " + authResponse.getStatus() == null));
                         if(authResponse.getStatus() == true){
                             token = authResponse.getAuth().getToken();
+                            Log.i("TAG22", String.valueOf("TOKEN - " + token));
                             saveAuthDate(login, password, token, authResponse.getAuth().getExpires());
-                            onLoadMore();
+                            loadDate();
                             hideLoginContainer();
+                            ((MainActivity) getActivity()).setLogoutButtonVisibility(true);
                         }
                     }
 
@@ -113,12 +119,12 @@ public class FeedVideosFragment extends Fragment {
         loginContainer.setVisibility(View.GONE);
         recyclerView.setVisibility(View.VISIBLE);
     }
-    private void showLoginContainer() {
-        loginContainer.setVisibility(View.VISIBLE);
+    public void showLoginContainer() {
         recyclerView.setVisibility(View.GONE);
+        loginContainer.setVisibility(View.VISIBLE);
     }
 
-    private void saveAuthDate(String login, String password, String token, String date) {
+    public void saveAuthDate(String login, String password, String token, String date) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(KEY_LOGIN, login);
         editor.putString(KEY_PASSWORD, password);
@@ -128,25 +134,44 @@ public class FeedVideosFragment extends Fragment {
     }
 
     private void initRecyclerView() {
-        videos = new ArrayList<>();
         recyclerViewAdapter = new RecyclerViewAdapter(getContext(), videos);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(recyclerViewAdapter);
+
+
+        recyclerView.addOnItemTouchListener(
+                new RecyclerItemClickListener(getContext(), recyclerView , new RecyclerItemClickListener.OnItemClickListener() {
+                    @Override public void onItemClick(View view, int position) {
+                        Intent intent = new Intent(getContext(), PlayVideoActivity.class);
+                        intent.putExtra("url", videos.get(position).getUrl());
+                        intent.putExtra("urlFull", videos.get(position).getFullUrl());
+                        startActivity(intent);
+                    }
+
+                    @Override public void onLongItemClick(View view, int position) {
+                    }
+                })
+        );
+
+        recyclerView.setOnScrollListener(new EndlessRecyclerViewScrollListener(layoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount) {
+                Log.i("TAG22", "LoadMore - page " + page);
+                loadDate();
+            }
+        });
     }
 
-    void onLoadMore(){
+    void loadDate(){
         ApiFactory.getService().getFeedVideo(0, 10, token).enqueue(new Callback<VidmeResponse>() {
             @Override
             public void onResponse(Call<VidmeResponse> call, Response<VidmeResponse> response) {
-
                 Log.i("TAG22", "Feed Response");
-
                 VidmeResponse vidmeResponse = response.body();
-
                 Log.i("TAG22", String.valueOf(vidmeResponse.getStatus()));
                 Log.i("TAG22", String.valueOf(vidmeResponse.getVideos().size()));
-                videos = vidmeResponse.getVideos();
+                videos.addAll(vidmeResponse.getVideos());
                 recyclerViewAdapter.update(videos);
             }
 
@@ -158,3 +183,14 @@ public class FeedVideosFragment extends Fragment {
         });
     }
 }
+
+     /*   String tokenDate = sharedPreferences.getString(KEY_TOKEN_END, null);
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        Date date = null;
+        try {
+            date = formatter.parse(tokenDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        if(token == null || (date != null && date.getTime() < System.currentTimeMillis())){*/

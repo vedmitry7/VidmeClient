@@ -49,7 +49,7 @@ public class FeaturedVideosFragment extends Fragment implements SwipeRefreshLayo
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         Log.i("TAG22", "onCreateFeaturedView");
 
-        View view = inflater.inflate(R.layout.feature_video_fragment, container, false);
+        View view = inflater.inflate(R.layout.fragment_feature_video, container, false);
         ButterKnife.bind(this, view);
 
         videos = new ArrayList<>();

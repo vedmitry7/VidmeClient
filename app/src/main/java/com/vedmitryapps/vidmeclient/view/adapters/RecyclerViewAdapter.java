@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
 import com.vedmitryapps.vidmeclient.R;
 import com.vedmitryapps.vidmeclient.model.objects.Video;
 
@@ -44,13 +44,15 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         double h = videos.get(position).getHeight();
         double k = w/h;
 
-        Picasso.with(context)
+        Glide
+                .with(context)
                 .load(videos.get(position).getThumbnailUrl())
-                .resize(displayMetrics.widthPixels, (int) (displayMetrics.widthPixels/k))
+                .placeholder(R.mipmap.ic_launcher)
+                .override(displayMetrics.widthPixels, (int) (displayMetrics.widthPixels/k))
                 .into(holder.imageView);
 
-       // holder.title.setText(videos.get(position).getTitle());
-        holder.title.setText(String.valueOf(position));
+        holder.title.setText(videos.get(position).getTitle());
+        // holder.title.setText(String.valueOf(position));
         holder.likesCount.setText(String.valueOf(videos.get(position).getLikesCount()));
     }
 

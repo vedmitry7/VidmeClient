@@ -3,6 +3,7 @@ package com.vedmitryapps.vidmeclient.view.adapters;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 
 import com.vedmitryapps.vidmeclient.view.fragments.FeaturedVideosFragment;
 import com.vedmitryapps.vidmeclient.view.fragments.FeedVideosFragment;
@@ -11,8 +12,11 @@ import com.vedmitryapps.vidmeclient.view.fragments.NewVideosFragment;
 
 public class PagerAdapter extends FragmentPagerAdapter {
 
+    private FragmentManager fm;
+
     public PagerAdapter(FragmentManager fm) {
         super(fm);
+        this.fm = fm;
     }
 
     @Override
@@ -44,5 +48,14 @@ public class PagerAdapter extends FragmentPagerAdapter {
                 return "FEED";
         }
         return null;
+    }
+
+    public Fragment getActiveFragment(ViewPager container, int position) {
+        String name = makeFragmentName(container.getId(), position);
+        return  fm.findFragmentByTag(name);
+    }
+
+    private static String makeFragmentName(int viewId, int index) {
+        return "android:switcher:" + viewId + ":" + index;
     }
 }

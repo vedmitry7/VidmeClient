@@ -17,7 +17,7 @@
             android:layout_height="match_parent">
 
             <android.support.design.widget.TabLayout
-                android:layout_toLeftOf="@+id/button"
+                android:layout_toLeftOf="@+id/menuButton"
                 android:id="@+id/tabs"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -27,9 +27,11 @@
             </android.support.design.widget.TabLayout>
 
             <ImageButton
+                android:layout_marginRight="10dp"
                 android:layout_centerVertical="true"
-                android:id="@+id/button"
+                android:id="@+id/menuButton"
                 android:layout_width="24dp"
+                android:clickable="true"
                 android:layout_height="24dp"
                 android:background="@mipmap/ic_menu"
                 android:layout_alignParentRight="true" />

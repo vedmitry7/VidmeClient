@@ -46,7 +46,7 @@ public class NewVideosFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         Log.i("TAG22", "onCreateNewView");
 
-        View view = inflater.inflate(R.layout.feature_video_fragment, container, false);
+        View view = inflater.inflate(R.layout.fragment_feature_video, container, false);
         ButterKnife.bind(this, view);
         videos = new ArrayList<>();
 
@@ -88,7 +88,7 @@ public class NewVideosFragment extends Fragment {
     void loadDate(){
         Log.i("TAG22", "LoadDate");
 
-        ApiFactory.getService().getFeaturedVideo(offset, 10).enqueue(new Callback<VidmeResponse>() {
+        ApiFactory.getService().getNewVideo(offset, 10).enqueue(new Callback<VidmeResponse>() {
             @Override
             public void onResponse(Call<VidmeResponse> call, Response<VidmeResponse> response) {
                 VidmeResponse vidmeResponse = response.body();

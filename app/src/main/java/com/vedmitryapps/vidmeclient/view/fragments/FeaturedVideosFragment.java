@@ -82,6 +82,8 @@ public class FeaturedVideosFragment extends Fragment implements SwipeRefreshLayo
         });
 
         mSwipeRefreshLayout.setColorSchemeColors(Color.RED, Color.GREEN, Color.BLUE, Color.MAGENTA);
+        mSwipeRefreshLayout.setOnRefreshListener(this);
+
         loadDate();
 
         return view;
@@ -114,6 +116,10 @@ public class FeaturedVideosFragment extends Fragment implements SwipeRefreshLayo
 
     @Override
     public void onRefresh() {
-
+        Log.i("TAG22", "refresh");
+        videos.clear();
+        recyclerView.getAdapter().notifyDataSetChanged();
+        loadDate();
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 }

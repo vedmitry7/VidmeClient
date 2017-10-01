@@ -3,9 +3,11 @@ package com.vedmitryapps.vidmeclient.view.fragments;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -44,7 +46,7 @@ import static com.vedmitryapps.vidmeclient.App.KEY_TOKEN;
 import static com.vedmitryapps.vidmeclient.App.KEY_TOKEN_END;
 
 
-public class FeedVideosFragment extends Fragment {
+public class FeedVideosFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     @BindView(R.id.loginBtn)
     Button loginBtn;
@@ -56,6 +58,8 @@ public class FeedVideosFragment extends Fragment {
     RelativeLayout loginContainer;
     @BindView(R.id.featuredRecyclerView)
     RecyclerView recyclerView;
+    @BindView(R.id.refresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
 
     private RecyclerViewAdapter recyclerViewAdapter;
     private SharedPreferences sharedPreferences;
@@ -70,6 +74,9 @@ public class FeedVideosFragment extends Fragment {
 
         videos = new ArrayList<>();
         initRecyclerView();
+
+        mSwipeRefreshLayout.setColorSchemeColors(Color.RED, Color.GREEN, Color.BLUE, Color.MAGENTA);
+        mSwipeRefreshLayout.setOnRefreshListener(this);
 
         sharedPreferences = getContext().getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
         token = sharedPreferences.getString(KEY_TOKEN, null);
@@ -118,10 +125,12 @@ public class FeedVideosFragment extends Fragment {
     private void hideLoginContainer() {
         loginContainer.setVisibility(View.GONE);
         recyclerView.setVisibility(View.VISIBLE);
+        mSwipeRefreshLayout.setEnabled(true);
     }
     public void showLoginContainer() {
         recyclerView.setVisibility(View.GONE);
         loginContainer.setVisibility(View.VISIBLE);
+        mSwipeRefreshLayout.setEnabled(false);
     }
 
     public void saveAuthDate(String login, String password, String token, String date) {
@@ -181,6 +190,15 @@ public class FeedVideosFragment extends Fragment {
                 Log.i("TAG22", t.getMessage());
             }
         });
+    }
+
+    @Override
+    public void onRefresh() {
+        Log.i("TAG22", "refresh");
+        videos.clear();
+        recyclerView.getAdapter().notifyDataSetChanged();
+        loadDate();
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 }
 

@@ -1,6 +1,7 @@
 package com.vedmitryapps.vidmeclient.view.fragments;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -31,14 +32,15 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 
-public class NewVideosFragment extends Fragment {
+public class NewVideosFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     @BindView(R.id.featuredRecyclerView)
     RecyclerView recyclerView;
+    @BindView(R.id.refresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
 
     private List<Video> videos;
     private RecyclerViewAdapter recyclerViewAdapter;
-
     private int offset;
 
     @Nullable
@@ -78,7 +80,8 @@ public class NewVideosFragment extends Fragment {
             }
         });
 
-        SwipeRefreshLayout swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.refresh);
+        mSwipeRefreshLayout.setColorSchemeColors(Color.RED, Color.GREEN, Color.BLUE, Color.MAGENTA);
+        mSwipeRefreshLayout.setOnRefreshListener(this);
 
         loadDate();
 
@@ -108,6 +111,15 @@ public class NewVideosFragment extends Fragment {
                 Log.i("TAG22", t.getMessage());
             }
         });
+    }
+
+    @Override
+    public void onRefresh() {
+        Log.i("TAG22", "refresh");
+        videos.clear();
+        recyclerView.getAdapter().notifyDataSetChanged();
+        loadDate();
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 
 }

@@ -20,7 +20,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".view.activities.PlayVideoActivity"></activity>
+        <activity android:name=".view.activities.PlayVideoActivity" />
+        <activity android:name=".view.activities.FullVideo"></activity>
     </application>
 
 </manifest>

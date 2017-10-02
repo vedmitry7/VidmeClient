@@ -14,7 +14,6 @@ public class AuthResponse {
     @Expose
     private Auth auth;
 
-
     public Boolean getStatus() {
         return status;
     }

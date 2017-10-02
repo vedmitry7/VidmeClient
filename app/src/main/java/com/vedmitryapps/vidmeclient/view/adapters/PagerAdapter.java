@@ -4,13 +4,14 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 
 import com.vedmitryapps.vidmeclient.view.fragments.FeaturedVideosFragment;
 import com.vedmitryapps.vidmeclient.view.fragments.FeedVideosFragment;
 import com.vedmitryapps.vidmeclient.view.fragments.NewVideosFragment;
 
 
-public class PagerAdapter extends FragmentPagerAdapter {
+public class PagerAdapter extends FragmentPagerAdapter implements ViewPager.OnPageChangeListener {
 
     private FragmentManager fm;
 
@@ -57,5 +58,20 @@ public class PagerAdapter extends FragmentPagerAdapter {
 
     private static String makeFragmentName(int viewId, int index) {
         return "android:switcher:" + viewId + ":" + index;
+    }
+
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+    }
+
+    @Override
+    public void onPageSelected(int position) {
+        Log.i("TAG22", "pager - " + position);
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int state) {
+
     }
 }

@@ -27,7 +27,8 @@ public class PlayVideoActivity extends AppCompatActivity implements OnPreparedLi
         Log.i("TAG22", getIntent().getStringExtra("url"));
         Log.i("TAG22", getIntent().getStringExtra("urlFull"));
 
-        videoView.setVideoURI(Uri.parse(getIntent().getStringExtra("urlFull")));
+        //videoView.setVideoURI(Uri.parse(getIntent().getStringExtra("urlFull")));
+        videoView.setVideoURI(Uri.parse("https://api.vid.me//video//17981637//stream?format=hls"));
 
     }
 
@@ -35,4 +36,6 @@ public class PlayVideoActivity extends AppCompatActivity implements OnPreparedLi
     public void onPrepared() {
         videoView.start();
     }
+
+
 }

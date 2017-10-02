@@ -33,6 +33,17 @@ public class Video {
     @SerializedName("embed_url")
     @Expose
     private String embedUrl;
+    @SerializedName("youtube_override_source")
+    @Expose
+    private String youtubeOverrideSource;
+
+    public String getYoutubeOverrideSource() {
+        return youtubeOverrideSource;
+    }
+
+    public void setYoutubeOverrideSource(String youtubeOverrideSource) {
+        this.youtubeOverrideSource = youtubeOverrideSource;
+    }
 
     public String getUrl() {
         return url;

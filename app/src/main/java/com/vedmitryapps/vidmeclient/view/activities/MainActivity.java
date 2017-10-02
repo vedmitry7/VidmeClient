@@ -3,6 +3,8 @@ package com.vedmitryapps.vidmeclient.view.activities;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -29,6 +31,8 @@ public class MainActivity extends AppCompatActivity {
 
     @BindView(R.id.menuButton)
     ImageButton button;
+    @BindView(R.id.coordinatorLayout)
+    CoordinatorLayout coordinatorLayout;
     SharedPreferences sharedPreferences;
 
     @Override
@@ -69,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
                 popupMenu.show();
             }
         });
+
     }
 
     private void clearAuthDate() {
@@ -86,7 +91,10 @@ public class MainActivity extends AppCompatActivity {
         } else {
             button.setVisibility(View.GONE);
         }
+    }
 
+    public void showSnackBar(String s){
+        Snackbar.make(coordinatorLayout, s, Snackbar.LENGTH_LONG).show();
     }
 
 }

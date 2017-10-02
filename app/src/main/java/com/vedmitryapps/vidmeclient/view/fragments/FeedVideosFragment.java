@@ -6,22 +6,22 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.vedmitryapps.vidmeclient.R;
 import com.vedmitryapps.vidmeclient.model.api.ApiFactory;
 import com.vedmitryapps.vidmeclient.model.objects.AuthResponse;
+import com.vedmitryapps.vidmeclient.model.objects.Error;
 import com.vedmitryapps.vidmeclient.model.objects.Video;
 import com.vedmitryapps.vidmeclient.model.objects.VidmeResponse;
 import com.vedmitryapps.vidmeclient.view.activities.MainActivity;
@@ -30,6 +30,7 @@ import com.vedmitryapps.vidmeclient.view.adapters.RecyclerViewAdapter;
 import com.vedmitryapps.vidmeclient.view.listeners.EndlessRecyclerViewScrollListener;
 import com.vedmitryapps.vidmeclient.view.listeners.RecyclerItemClickListener;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,13 +41,14 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import static com.vedmitryapps.vidmeclient.App.APP_PREFERENCES;
+import static com.vedmitryapps.vidmeclient.App.DOWNLOAD_LIMIT;
 import static com.vedmitryapps.vidmeclient.App.KEY_LOGIN;
 import static com.vedmitryapps.vidmeclient.App.KEY_PASSWORD;
 import static com.vedmitryapps.vidmeclient.App.KEY_TOKEN;
 import static com.vedmitryapps.vidmeclient.App.KEY_TOKEN_END;
 
 
-public class FeedVideosFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
+public class FeedVideosFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener {
 
     @BindView(R.id.loginBtn)
     Button loginBtn;
@@ -65,10 +67,12 @@ public class FeedVideosFragment extends Fragment implements SwipeRefreshLayout.O
     private SharedPreferences sharedPreferences;
     private List<Video> videos;
     private String token;
+    private int offset;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable final ViewGroup container, @Nullable Bundle savedInstanceState) {
-        Log.i("TAG22", "onCreateLogIn");
+
         View view = inflater.inflate(R.layout.fragment_feed_video, container, false);
         ButterKnife.bind(this, view);
 
@@ -79,8 +83,8 @@ public class FeedVideosFragment extends Fragment implements SwipeRefreshLayout.O
         mSwipeRefreshLayout.setOnRefreshListener(this);
 
         sharedPreferences = getContext().getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
-        token = sharedPreferences.getString(KEY_TOKEN, null);
 
+        token = sharedPreferences.getString(KEY_TOKEN, null);
         if(token == null){
             showLoginContainer();
         } else {
@@ -92,6 +96,10 @@ public class FeedVideosFragment extends Fragment implements SwipeRefreshLayout.O
             @Override
             public void onClick(View view) {
 
+                if(!hasConnection(getContext())) {
+                    ((MainActivity)getActivity()).showSnackBar(getString(R.string.no_connection));
+                    return;
+                }
                 final String login = loginEt.getText().toString();
                 final String password = passwordEt.getText().toString();
 
@@ -99,11 +107,21 @@ public class FeedVideosFragment extends Fragment implements SwipeRefreshLayout.O
                     @Override
                     public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
                         AuthResponse authResponse = response.body();
-                        Log.i("TAG22", String.valueOf("RESPONSE NULL - " + authResponse == null));
-                        Log.i("TAG22", String.valueOf("RESPONSE STATUS NULL - " + authResponse.getStatus() == null));
-                        if(authResponse.getStatus() == true){
+
+                        if(authResponse == null){
+                            String s = null;
+                            try {
+                                s = response.errorBody().string();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                            Error er =  gson.fromJson(s, Error.class);
+                            ((MainActivity)getActivity()).showSnackBar(er.getError());
+                            return;
+                        }
+                        if(authResponse != null && authResponse.getStatus() == true){
                             token = authResponse.getAuth().getToken();
-                            Log.i("TAG22", String.valueOf("TOKEN - " + token));
                             saveAuthDate(login, password, token, authResponse.getAuth().getExpires());
                             loadDate();
                             hideLoginContainer();
@@ -113,7 +131,6 @@ public class FeedVideosFragment extends Fragment implements SwipeRefreshLayout.O
 
                     @Override
                     public void onFailure(Call<AuthResponse> call, Throwable t) {
-                        Toast.makeText(getContext(),"Password/login error", Toast.LENGTH_LONG);
                     }
                 });
             }
@@ -166,49 +183,37 @@ public class FeedVideosFragment extends Fragment implements SwipeRefreshLayout.O
         recyclerView.setOnScrollListener(new EndlessRecyclerViewScrollListener(layoutManager) {
             @Override
             public void onLoadMore(int page, int totalItemsCount) {
-                Log.i("TAG22", "LoadMore - page " + page);
                 loadDate();
             }
         });
     }
 
     void loadDate(){
-        ApiFactory.getService().getFeedVideo(0, 10, token).enqueue(new Callback<VidmeResponse>() {
+        ApiFactory.getService().getFeedVideo(offset, DOWNLOAD_LIMIT, token).enqueue(new Callback<VidmeResponse>() {
             @Override
             public void onResponse(Call<VidmeResponse> call, Response<VidmeResponse> response) {
-                Log.i("TAG22", "Feed Response");
                 VidmeResponse vidmeResponse = response.body();
-                Log.i("TAG22", String.valueOf(vidmeResponse.getStatus()));
-                Log.i("TAG22", String.valueOf(vidmeResponse.getVideos().size()));
                 videos.addAll(vidmeResponse.getVideos());
                 recyclerViewAdapter.update(videos);
+                offset += DOWNLOAD_LIMIT;
             }
 
             @Override
             public void onFailure(Call<VidmeResponse> call, Throwable t) {
-                Log.i("TAG22", "fail");
-                Log.i("TAG22", t.getMessage());
             }
         });
     }
 
     @Override
     public void onRefresh() {
-        Log.i("TAG22", "refresh");
         videos.clear();
         recyclerView.getAdapter().notifyDataSetChanged();
-        loadDate();
+        if(hasConnection(getContext())) {
+            loadDate();
+        } else {
+            ((MainActivity)getActivity()).showSnackBar(getString(R.string.no_connection));
+        }
         mSwipeRefreshLayout.setRefreshing(false);
     }
+
 }
-
-     /*   String tokenDate = sharedPreferences.getString(KEY_TOKEN_END, null);
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-        Date date = null;
-        try {
-            date = formatter.parse(tokenDate);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-        if(token == null || (date != null && date.getTime() < System.currentTimeMillis())){*/

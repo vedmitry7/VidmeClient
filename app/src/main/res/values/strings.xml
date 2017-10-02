@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">VidmeClient</string>
+    <string name="no_connection">No internet connection</string>
 </resources>

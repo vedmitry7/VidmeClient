@@ -4,7 +4,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 
 import com.vedmitryapps.vidmeclient.view.fragments.FeaturedVideosFragment;
 import com.vedmitryapps.vidmeclient.view.fragments.FeedVideosFragment;
@@ -67,7 +66,6 @@ public class PagerAdapter extends FragmentPagerAdapter implements ViewPager.OnPa
 
     @Override
     public void onPageSelected(int position) {
-        Log.i("TAG22", "pager - " + position);
     }
 
     @Override

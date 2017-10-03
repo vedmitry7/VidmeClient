@@ -4,28 +4,29 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RelativeLayout;
+import android.widget.LinearLayout;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.vedmitryapps.vidmeclient.R;
 import com.vedmitryapps.vidmeclient.model.api.ApiFactory;
 import com.vedmitryapps.vidmeclient.model.objects.AuthResponse;
-import com.vedmitryapps.vidmeclient.model.objects.Error;
 import com.vedmitryapps.vidmeclient.model.objects.Video;
+import com.vedmitryapps.vidmeclient.model.objects.VidmeError;
 import com.vedmitryapps.vidmeclient.model.objects.VidmeResponse;
 import com.vedmitryapps.vidmeclient.view.activities.MainActivity;
-import com.vedmitryapps.vidmeclient.view.activities.PlayVideoActivity;
 import com.vedmitryapps.vidmeclient.view.adapters.RecyclerViewAdapter;
 import com.vedmitryapps.vidmeclient.view.listeners.EndlessRecyclerViewScrollListener;
 import com.vedmitryapps.vidmeclient.view.listeners.RecyclerItemClickListener;
@@ -40,12 +41,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import static com.vedmitryapps.vidmeclient.App.APP_PREFERENCES;
-import static com.vedmitryapps.vidmeclient.App.DOWNLOAD_LIMIT;
-import static com.vedmitryapps.vidmeclient.App.KEY_LOGIN;
-import static com.vedmitryapps.vidmeclient.App.KEY_PASSWORD;
-import static com.vedmitryapps.vidmeclient.App.KEY_TOKEN;
-import static com.vedmitryapps.vidmeclient.App.KEY_TOKEN_END;
+import static com.vedmitryapps.vidmeclient.App.*;
 
 
 public class FeedVideosFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener {
@@ -57,10 +53,10 @@ public class FeedVideosFragment extends BaseFragment implements SwipeRefreshLayo
     @BindView(R.id.passwordEt)
     EditText passwordEt;
     @BindView(R.id.login_container)
-    RelativeLayout loginContainer;
-    @BindView(R.id.featuredRecyclerView)
+    LinearLayout loginContainer;
+    @BindView(R.id.feedRecyclerView)
     RecyclerView recyclerView;
-    @BindView(R.id.refresh)
+    @BindView(R.id.feedVideoRefresh)
     SwipeRefreshLayout mSwipeRefreshLayout;
 
     private RecyclerViewAdapter recyclerViewAdapter;
@@ -89,54 +85,65 @@ public class FeedVideosFragment extends BaseFragment implements SwipeRefreshLayo
             showLoginContainer();
         } else {
             hideLoginContainer();
+            createAuth(sharedPreferences.getString(KEY_LOGIN, null), sharedPreferences.getString(KEY_PASSWORD, null));
             loadDate();
         }
 
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                if(!hasConnection(getContext())) {
-                    ((MainActivity)getActivity()).showSnackBar(getString(R.string.no_connection));
-                    return;
-                }
-                final String login = loginEt.getText().toString();
-                final String password = passwordEt.getText().toString();
-
-                ApiFactory.getService().createAuth(login, password).enqueue(new Callback<AuthResponse>() {
-                    @Override
-                    public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
-                        AuthResponse authResponse = response.body();
-
-                        if(authResponse == null){
-                            String s = null;
-                            try {
-                                s = response.errorBody().string();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-                            Error er =  gson.fromJson(s, Error.class);
-                            ((MainActivity)getActivity()).showSnackBar(er.getError());
-                            return;
-                        }
-                        if(authResponse != null && authResponse.getStatus() == true){
-                            token = authResponse.getAuth().getToken();
-                            saveAuthDate(login, password, token, authResponse.getAuth().getExpires());
-                            loadDate();
-                            hideLoginContainer();
-                            ((MainActivity) getActivity()).setLogoutButtonVisibility(true);
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<AuthResponse> call, Throwable t) {
-                    }
-                });
+              createAuth(loginEt.getText().toString(),
+                      passwordEt.getText().toString());
             }
         });
 
         return view;
+    }
+
+    private void createAuth(final String login, final String password) {
+        if(!hasConnection(getContext())) {
+            ((MainActivity)getActivity()).showSnackBar(getString(R.string.no_connection));
+            return;
+        }
+        Log.i("TAG22", login + " : " + password);
+
+        if(login == null && password == null){
+            showLoginContainer();
+            ((MainActivity)getActivity()).showSnackBar(getString(R.string.auth_error));
+
+        }
+
+        ApiFactory.getService().createAuth(login, password).enqueue(new Callback<AuthResponse>() {
+            @Override
+            public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
+                AuthResponse authResponse = response.body();
+
+                if(authResponse == null){
+                    String s = null;
+                    try {
+                        s = response.errorBody().string();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                    VidmeError error =  gson.fromJson(s, VidmeError.class);
+                    ((MainActivity)getActivity()).showSnackBar(error.getError());
+                    return;
+                }
+                if(authResponse != null && authResponse.getStatus() == true){
+                    token = authResponse.getAuth().getToken();
+                    saveAuthDate(login, password, token, authResponse.getAuth().getExpires());
+                    loadDate();
+                    hideLoginContainer();
+                    ((MainActivity) getActivity()).setLogoutButtonVisibility(true);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AuthResponse> call, Throwable t) {
+                ((MainActivity)getActivity()).showSnackBar(t.getMessage());
+            }
+        });
     }
 
     private void hideLoginContainer() {
@@ -169,10 +176,15 @@ public class FeedVideosFragment extends BaseFragment implements SwipeRefreshLayo
         recyclerView.addOnItemTouchListener(
                 new RecyclerItemClickListener(getContext(), recyclerView , new RecyclerItemClickListener.OnItemClickListener() {
                     @Override public void onItemClick(View view, int position) {
-                        Intent intent = new Intent(getContext(), PlayVideoActivity.class);
+                        if(videos.get(position).getYoutubeOverrideSource() != null){
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(videos.get(position).getYoutubeOverrideSource())));
+                        } else {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(videos.get(position).getFullUrl())));
+                        }
+                          /* Intent intent = new Intent(getContext(), PlayVideoActivity.class);
                         intent.putExtra("url", videos.get(position).getUrl());
                         intent.putExtra("urlFull", videos.get(position).getFullUrl());
-                        startActivity(intent);
+                        startActivity(intent);*/
                     }
 
                     @Override public void onLongItemClick(View view, int position) {
@@ -186,6 +198,21 @@ public class FeedVideosFragment extends BaseFragment implements SwipeRefreshLayo
                 loadDate();
             }
         });
+
+        recyclerView.addOnItemTouchListener(
+                new RecyclerItemClickListener(getContext(), recyclerView , new RecyclerItemClickListener.OnItemClickListener() {
+                    @Override public void onItemClick(View view, int position) {
+                        if(videos.get(position).getYoutubeOverrideSource() != null){
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(videos.get(position).getYoutubeOverrideSource())));
+                        } else {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(videos.get(position).getFullUrl())));
+                        }
+                    }
+
+                    @Override public void onLongItemClick(View view, int position) {
+                    }
+                })
+        );
     }
 
     void loadDate(){

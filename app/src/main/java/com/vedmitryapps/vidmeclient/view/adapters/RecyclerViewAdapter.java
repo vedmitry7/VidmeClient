@@ -52,7 +52,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                 .into(holder.imageView);
 
         holder.title.setText(videos.get(position).getTitle());
-        // holder.title.setText(String.valueOf(position));
+        //holder.title.setText(String.valueOf(position));
         holder.likesCount.setText(String.valueOf(videos.get(position).getLikesCount()));
     }
 

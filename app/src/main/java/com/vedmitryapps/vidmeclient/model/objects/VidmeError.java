@@ -3,7 +3,7 @@ package com.vedmitryapps.vidmeclient.model.objects;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class Error {
+public class VidmeError {
 
     @SerializedName("status")
     @Expose

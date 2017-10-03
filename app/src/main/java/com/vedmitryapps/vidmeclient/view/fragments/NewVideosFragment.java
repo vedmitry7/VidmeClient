@@ -2,6 +2,7 @@ package com.vedmitryapps.vidmeclient.view.fragments;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -16,7 +17,6 @@ import com.vedmitryapps.vidmeclient.model.api.ApiFactory;
 import com.vedmitryapps.vidmeclient.model.objects.Video;
 import com.vedmitryapps.vidmeclient.model.objects.VidmeResponse;
 import com.vedmitryapps.vidmeclient.view.activities.MainActivity;
-import com.vedmitryapps.vidmeclient.view.activities.PlayVideoActivity;
 import com.vedmitryapps.vidmeclient.view.adapters.RecyclerViewAdapter;
 import com.vedmitryapps.vidmeclient.view.listeners.EndlessRecyclerViewScrollListener;
 import com.vedmitryapps.vidmeclient.view.listeners.RecyclerItemClickListener;
@@ -35,9 +35,9 @@ import static com.vedmitryapps.vidmeclient.App.DOWNLOAD_LIMIT;
 
 public class NewVideosFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener {
 
-    @BindView(R.id.featuredRecyclerView)
+    @BindView(R.id.newVideoRecyclerView)
     RecyclerView recyclerView;
-    @BindView(R.id.refresh)
+    @BindView(R.id.newVideoRefresh)
     SwipeRefreshLayout mSwipeRefreshLayout;
 
     private List<Video> videos;
@@ -48,23 +48,42 @@ public class NewVideosFragment extends BaseFragment implements SwipeRefreshLayou
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.fragment_feature_video, container, false);
+        View view = inflater.inflate(R.layout.fragment_new_video, container, false);
         ButterKnife.bind(this, view);
         videos = new ArrayList<>();
 
+        initRecyclerView();
+
+        mSwipeRefreshLayout.setColorSchemeColors(Color.RED, Color.GREEN, Color.BLUE, Color.MAGENTA);
+        mSwipeRefreshLayout.setOnRefreshListener(this);
+
+        if(hasConnection(getContext())) {
+            loadDate();
+        } else {
+            ((MainActivity)getActivity()).showSnackBar(getString(R.string.no_connection));
+        }
+
+        return view;
+    }
+
+    private void initRecyclerView() {
         recyclerViewAdapter = new RecyclerViewAdapter(getContext(), videos);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(recyclerViewAdapter);
 
         recyclerView.addOnItemTouchListener(
                 new RecyclerItemClickListener(getContext(), recyclerView , new RecyclerItemClickListener.OnItemClickListener() {
                     @Override public void onItemClick(View view, int position) {
-                        Intent intent = new Intent(getContext(), PlayVideoActivity.class);
+                        if(videos.get(position).getYoutubeOverrideSource() != null){
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(videos.get(position).getYoutubeOverrideSource())));
+                        } else {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(videos.get(position).getFullUrl())));
+                        }
+                          /* Intent intent = new Intent(getContext(), PlayVideoActivity.class);
                         intent.putExtra("url", videos.get(position).getUrl());
                         intent.putExtra("urlFull", videos.get(position).getFullUrl());
-                        startActivity(intent);
+                        startActivity(intent);*/
                     }
 
                     @Override public void onLongItemClick(View view, int position) {
@@ -78,17 +97,6 @@ public class NewVideosFragment extends BaseFragment implements SwipeRefreshLayou
                 loadDate();
             }
         });
-
-        mSwipeRefreshLayout.setColorSchemeColors(Color.RED, Color.GREEN, Color.BLUE, Color.MAGENTA);
-        mSwipeRefreshLayout.setOnRefreshListener(this);
-
-        if(hasConnection(getContext())) {
-            loadDate();
-        } else {
-            ((MainActivity)getActivity()).showSnackBar(getString(R.string.no_connection));
-        }
-
-        return view;
     }
 
     void loadDate(){

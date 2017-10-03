@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">VidmeClient</string>
     <string name="no_connection">No internet connection</string>
+    <string name="likes">likes</string>
+    <string name="login">Login</string>
+    <string name="auth_error">Authorization error</string>
 </resources>

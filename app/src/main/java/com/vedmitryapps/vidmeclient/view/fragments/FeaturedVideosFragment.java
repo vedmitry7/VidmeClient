@@ -54,6 +54,20 @@ public class FeaturedVideosFragment extends BaseFragment implements SwipeRefresh
 
         videos = new ArrayList<>();
 
+        initRecyclerView();
+
+        mSwipeRefreshLayout.setColorSchemeColors(Color.RED, Color.GREEN, Color.BLUE, Color.MAGENTA);
+        mSwipeRefreshLayout.setOnRefreshListener(this);
+
+        if(hasConnection(getContext())) {
+            loadDate();
+        } else {
+            ((MainActivity)getActivity()).showSnackBar(getString(R.string.no_connection));
+        }
+        return view;
+    }
+
+    private void initRecyclerView() {
         recyclerViewAdapter = new RecyclerViewAdapter(getContext(), videos);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
@@ -62,10 +76,13 @@ public class FeaturedVideosFragment extends BaseFragment implements SwipeRefresh
         recyclerView.addOnItemTouchListener(
                 new RecyclerItemClickListener(getContext(), recyclerView , new RecyclerItemClickListener.OnItemClickListener() {
                     @Override public void onItemClick(View view, int position) {
-                        if(videos.get(position).getYoutubeOverrideSource() != null)
-                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(videos.get(position).getYoutubeOverrideSource())));
+                        if(videos.get(position).getYoutubeOverrideSource() != null){
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(videos.get(position).getYoutubeOverrideSource())));
+                        } else {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(videos.get(position).getFullUrl())));
+                        }
 
-                        /*Intent intent = new Intent(getContext(), FullVideo.class);
+                       /* Intent intent = new Intent(getContext(), PlayVideoActivity.class);
                         intent.putExtra("url", videos.get(position).getUrl());
                         intent.putExtra("urlFull", videos.get(position).getFullUrl());
                         startActivity(intent);*/
@@ -82,16 +99,6 @@ public class FeaturedVideosFragment extends BaseFragment implements SwipeRefresh
                 loadDate();
             }
         });
-
-        mSwipeRefreshLayout.setColorSchemeColors(Color.RED, Color.GREEN, Color.BLUE, Color.MAGENTA);
-        mSwipeRefreshLayout.setOnRefreshListener(this);
-
-        if(hasConnection(getContext())) {
-            loadDate();
-        } else {
-            ((MainActivity)getActivity()).showSnackBar(getString(R.string.no_connection));
-        }
-        return view;
     }
 
     void loadDate(){
